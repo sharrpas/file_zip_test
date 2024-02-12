@@ -49,18 +49,8 @@ class FileController extends Controller
         File::query()->create([
             'name' => $request->name,
             'title' => $fileName,
-            'format' => $zipFormat,
         ]);
-        File::query()->create([
-            'name' => $request->name,
-            'title' => $fileName,
-            'format' => $gzFormat,
-        ]);
-        File::query()->create([
-            'name' => $request->name,
-            'title' => $fileName,
-            'format' => $svZipFormat,
-        ]);
+
 
 
         return $this->success(Storage::url('files/' . $fileName . $zipFormat));
