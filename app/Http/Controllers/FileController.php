@@ -14,7 +14,7 @@ class FileController extends Controller
     public function store(Request $request)
     {
         $validated_data = Validator::make($request->all(), [
-            'title' => 'required|string',
+            'name' => 'required|string',
             'file' => 'required|file|max:51200',
         ]);
         if ($validated_data->fails())
@@ -36,6 +36,7 @@ class FileController extends Controller
 
 
         File::query()->create([
+            'name' => $request->name,
             'title' => $zipFileName,
             'format' => $zipFormat,
         ]);
