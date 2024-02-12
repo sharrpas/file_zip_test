@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Status;
 use App\Models\File;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App\Constants\Status;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use ZipArchive;
 
 class FileController extends Controller
@@ -21,27 +21,48 @@ class FileController extends Controller
             return $this->error(Status::VALIDATION_FAILED, $validated_data->errors()->first());
 
 
-        $StorageDir = Storage::path('files/');
+        $storageDir = Storage::path('files/');
+        $fileName = date('Ymdhis') . rand(100, 999);
+        $file = $request->file;
 
 
-        $zipFileName = date('Ymdhis') . rand(100, 999);
+        //* .zip file save
         $zipFormat = '.zip';
-
         $zip = new ZipArchive();
-        $zip->open($StorageDir . $zipFileName . $zipFormat, ZipArchive::CREATE);
-        $zip->addFile($request->file);
+        $zip->open($storageDir . $fileName . $zipFormat, ZipArchive::CREATE);
+        $zip->addFile($file);
         $zip->close();
 
 
+        //* tar.gz file save
+        $gzFormat = '.tar.gz';
+        $gz = gzopen($storageDir . $fileName . $gzFormat, 'w9'); // w == write, 9 == highest compression
+        gzwrite($gz, file_get_contents($file));
+        gzclose($gz);
+
+
+        //* 7zip save
+        $svZipFormat = '.7zip';
+        shell_exec('7z a ' . $storageDir . $fileName . $svZipFormat . ' ' . $file);
 
 
         File::query()->create([
             'name' => $request->name,
-            'title' => $zipFileName,
+            'title' => $fileName,
             'format' => $zipFormat,
+        ]);
+        File::query()->create([
+            'name' => $request->name,
+            'title' => $fileName,
+            'format' => $gzFormat,
+        ]);
+        File::query()->create([
+            'name' => $request->name,
+            'title' => $fileName,
+            'format' => $svZipFormat,
         ]);
 
 
-        return $this->success(Storage::url('files/' . $zipFileName . $zipFormat));
+        return $this->success(Storage::url('files/' . $fileName . $zipFormat));
     }
 }
