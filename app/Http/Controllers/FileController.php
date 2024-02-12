@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Constants\Status;
 use App\Models\File;
+use App\Services\ArchiveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -20,39 +21,9 @@ class FileController extends Controller
         if ($validated_data->fails())
             return $this->error(Status::VALIDATION_FAILED, $validated_data->errors()->first());
 
+        app()->make(ArchiveService::class)->store($request); //binding
+//      (new ArchiveService())->store($request);
 
-        $storageDir = Storage::path('files/');
-        $fileName = date('Ymdhis') . rand(100, 999);
-        $file = $request->file;
-
-
-        //* .zip file save
-        $zipFormat = '.zip';
-        $zip = new ZipArchive();
-        $zip->open($storageDir . $fileName . $zipFormat, ZipArchive::CREATE);
-        $zip->addFile($file);
-        $zip->close();
-
-
-        //* tar.gz file save
-        $gzFormat = '.tar.gz';
-        $gz = gzopen($storageDir . $fileName . $gzFormat, 'w9'); // w == write, 9 == highest compression
-        gzwrite($gz, file_get_contents($file));
-        gzclose($gz);
-
-
-        //* 7zip save
-        $svZipFormat = '.7zip';
-        shell_exec('7z a ' . $storageDir . $fileName . $svZipFormat . ' ' . $file);
-
-
-        File::query()->create([
-            'name' => $request->name,
-            'title' => $fileName,
-        ]);
-
-
-
-        return $this->success(Storage::url('files/' . $fileName . $zipFormat));
+        return $this->success(Storage::url('files/'));
     }
 }
