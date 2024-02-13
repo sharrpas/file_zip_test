@@ -16,12 +16,12 @@ class FileController extends Controller
 
     public function index()
     {
-        return $this->success(MainFile::all());
+        return $this->success(MainFile::all());  // we can use pagination in resource but not yet
     }
 
     public function show(MainFile $file, $format)
     {
-        $format = (array)$format;
+        $format = (array)$format; // because of validating
         $validated_data = Validator::make($format, [
             0 => [
                 'required',
@@ -53,7 +53,7 @@ class FileController extends Controller
             'title' => $fileName,
         ]);
 
-        SaveFiles::dispatch($mainFile);
+        SaveFiles::dispatch($mainFile); // queue
 
         return $this->success(Storage::url('files/' . $mainFile->title));
     }

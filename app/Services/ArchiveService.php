@@ -30,6 +30,7 @@ class ArchiveService {
 
 
         //* 7zip save
+        // have to use shell command because the 7zip format used for virus
         $svZipFormat = '.7zip';
         shell_exec('7z a ' . $storageDir . $fileName . $svZipFormat . ' ' . $file);
 

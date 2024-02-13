@@ -36,6 +36,7 @@ class SaveFiles implements ShouldQueue
         sleep(2); // for testing ...
         app()->make(ArchiveService::class)->store($this->mainFile); //binding
 
+        // we can use this without binding
         //(new ArchiveService())->store($request);
     }
 }
