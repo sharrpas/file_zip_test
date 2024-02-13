@@ -33,7 +33,10 @@ class ArchiveService {
         $svZipFormat = '.7zip';
         shell_exec('7z a ' . $storageDir . $fileName . $svZipFormat . ' ' . $file);
 
-
+        File::query()->create([
+            'name' => $mainFile->name,
+            'title' => $fileName,
+        ]);
 
 
         return $fileName;

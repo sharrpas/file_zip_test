@@ -3,17 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Constants\Status;
+use App\Http\Resources\FileResource;
 use App\Jobs\SaveFiles;
-use App\Models\File;
 use App\Models\MainFile;
-use App\Services\ArchiveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use ZipArchive;
+use Illuminate\Validation\Rule;
 
 class FileController extends Controller
 {
+
+    public function index()
+    {
+        return $this->success(MainFile::all());
+    }
+
+    public function show(MainFile $file, $format)
+    {
+        $format = (array)$format;
+        $validated_data = Validator::make($format, [
+            0 => [
+                'required',
+                Rule::in(['7zip', 'zip', 'tar.gz']),
+            ]
+        ]);
+        if ($validated_data->fails())
+            return $this->error(Status::VALIDATION_FAILED, $validated_data->errors()->first());
+
+
+        return $this->success(new FileResource($file, $format[0]));
+    }
+
     public function store(Request $request)
     {
         $validated_data = Validator::make($request->all(), [
@@ -32,11 +53,8 @@ class FileController extends Controller
             'title' => $fileName,
         ]);
 
-
         SaveFiles::dispatch($mainFile);
 
-        //      (new ArchiveService())->store($request);
-
-        return $this->success(Storage::url('files/'));
+        return $this->success(Storage::url('files/' . $mainFile->title));
     }
 }
