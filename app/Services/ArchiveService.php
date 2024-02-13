@@ -8,12 +8,11 @@ use ZipArchive;
 
 class ArchiveService {
 
-    public function store($data): string
+    public function store($mainFile): string
     {
         $storageDir = Storage::path('files/');
-        $fileName = date('Ymdhis') . rand(100, 999);
-        $file = $data->file;
-
+        $fileName = pathinfo($mainFile->title,PATHINFO_FILENAME);
+        $file = $storageDir.$mainFile->title;
 
         //* .zip file save
         $zipFormat = '.zip';
@@ -35,10 +34,7 @@ class ArchiveService {
         shell_exec('7z a ' . $storageDir . $fileName . $svZipFormat . ' ' . $file);
 
 
-        File::query()->create([
-            'name' => $data->name,
-            'title' => $fileName,
-        ]);
+
 
         return $fileName;
     }

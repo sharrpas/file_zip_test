@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Constants\Status;
+use App\Jobs\SaveFiles;
 use App\Models\File;
+use App\Models\MainFile;
 use App\Services\ArchiveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,8 +23,19 @@ class FileController extends Controller
         if ($validated_data->fails())
             return $this->error(Status::VALIDATION_FAILED, $validated_data->errors()->first());
 
-        app()->make(ArchiveService::class)->store($request); //binding
-//      (new ArchiveService())->store($request);
+        $fileName = date('Ymdhis') . rand(100, 999) . '.' . $request->file('file')->extension();
+
+        Storage::putFileAs('files/', $request->file, $fileName);
+
+        $mainFile = MainFile::query()->create([
+            'name' => $request->name,
+            'title' => $fileName,
+        ]);
+
+
+        SaveFiles::dispatch($mainFile);
+
+        //      (new ArchiveService())->store($request);
 
         return $this->success(Storage::url('files/'));
     }
